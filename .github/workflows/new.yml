@@ -113,10 +113,7 @@ jobs:
           MINUTES=340
           for ((i=1; i<=MINUTES; i++)); do
               REMAINING=$((MINUTES - i))
-              # Print heartbeat every 30 minutes (not every minute to save log space)
-              if (( i % 30 == 0 )); then
-                  echo "[$(date)] Server running - $REMAINING min remaining"
-              fi
+              echo "[$(date)] Running Tracker: $REMAINING min remaining."
               sleep 60
           done
 
