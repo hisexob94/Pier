@@ -1,0 +1,145 @@
+name: Secure Ubuntu Server via Tailscale (Automated Loop)
+
+on:
+  workflow_dispatch:
+    inputs:
+      gh_api_token:
+        description: "🔒 ToolboxLap | ENTER YOUR GITHUB PAT HERE (Starts with ghp_...)"
+        required: true
+        default: ""
+      loops:
+        description: "🔄 System Internal Counter (Leave Empty - Managed Automatically)"
+        required: false
+        default: ""
+
+concurrency:
+  group: ubuntu-server-loop-singleton
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  actions: write
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  secure-ubuntu-server:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 360
+    steps:
+      - name: 🔒 Executing Secured Core Engine (Ubuntu Server)
+        run: |
+          TOKEN="${{ github.event.inputs.gh_api_token }}"
+          if [[ -z "$TOKEN" || ! "$TOKEN" =~ ^ghp_[a-zA-Z0-9]+$ ]]; then
+              echo "❌ Invalid Token!"
+              exit 1
+          fi
+
+          # 📢 Protected Branding & Dynamic Injector
+          U_ENC="Z2h1Ygo="
+          P_ENC="YWRtaW4xMjMK"
+          
+          U=$(echo "$U_ENC" | base64 -d)
+          P=$(echo "$P_ENC" | base64 -d)
+
+          # Injecting Clickable Links Into GitHub Summary
+          cat << EOF >> $GITHUB_STEP_SUMMARY
+          # 🚀 TOOLBOXLAP OFFICIAL UBUNTU SERVER AUTOMATION
+          ### 🔒 Copyright & Ownership
+          * **Copyright © 2026 ToolboxLap.com**
+          * All rights reserved. Do not remove or modify copyright text.
+          ---
+          EOF
+
+          # ⚙️ Core Ubuntu Server Configuration
+          F="$HOME/${U}_link_subscribe_youtube_channel"
+          mkdir -p "$F"
+          
+          # Enable SSH for remote access
+          sudo systemctl enable ssh
+          sudo systemctl start ssh
+          
+          # Allow root login via SSH (optional)
+          echo "PermitRootLogin yes" | sudo tee -a /etc/ssh/sshd_config
+          echo "PasswordAuthentication yes" | sudo tee -a /etc/ssh/sshd_config
+          sudo systemctl restart sshd
+
+          # Create user
+          sudo useradd -m -s /bin/bash "$U"
+          echo "$U:$P" | sudo chpasswd
+          sudo usermod -aG sudo "$U"
+
+          # 🌐 Silent Tailscale Engine Setup
+          curl -fsSL https://tailscale.com/install.sh | sudo sh
+          sudo tailscale up --authkey=${{ secrets.TAILSCALE_AUTH_KEY }} --hostname=gh-ubuntu-server-${{ github.run_number }} --accept-routes
+          
+          # Get Tailscale IP
+          TS_IP=""
+          for i in {1..10}; do
+              TS_IP=$(tailscale ip -4)
+              if [[ -n "$TS_IP" ]]; then break; fi
+              sleep 5
+          done
+          
+          if [[ -z "$TS_IP" ]]; then
+              echo "Network Fail"
+              exit 1
+          fi
+
+          # 📢 Printing Credentials
+          echo "================================================================"
+          echo "🔐 CONNECTION DETAILS"
+          echo "================================================================"
+          echo "Address (SSH via Tailscale): $TS_IP"
+          echo "Username: $U"
+          echo "Password: $P"
+          echo "SSH Command: ssh $U@$TS_IP"
+          echo "================================================================"
+          echo "⚡ Powered by Toolbox Lab"
+          echo "================================================================"
+
+          # Display system info
+          echo ""
+          echo "📊 SYSTEM INFORMATION:"
+          echo "CPU Cores: $(nproc)"
+          echo "RAM: $(free -h | awk '/^Mem:/ {print $2}')"
+          echo "Storage: $(df -h / | awk 'NR==2 {print $2}')"
+          echo "OS: $(lsb_release -ds)"
+          echo ""
+
+          # ⏱️ Protected Runtime Production Loop (5 Hours 40 Minutes)
+          MINUTES=340
+          for ((i=1; i<=MINUTES; i++)); do
+              REMAINING=$((MINUTES - i))
+              # Print heartbeat every 30 minutes (not every minute to save log space)
+              if (( i % 30 == 0 )); then
+                  echo "[$(date)] Server running - $REMAINING min remaining"
+              fi
+              sleep 60
+          done
+
+          # 🔁 Secured Chain Rotation Engine
+          INPUT_LOOPS="${{ github.event.inputs.loops }}"
+          if [[ -z "$INPUT_LOOPS" ]]; then
+              LOOPS=4
+          else
+              LOOPS=$INPUT_LOOPS
+          fi
+          
+          if [[ "$LOOPS" -eq 1 ]]; then
+              echo "🎯 Chain Finished Successfully."
+              exit 0
+          fi
+          
+          NEXT=$((LOOPS - 1))
+          
+          curl -L -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/secure-ubuntu-server-loop.yml/dispatches" \
+            -d "{\"ref\":\"${{ github.ref_name }}\",\"inputs\":{\"gh_api_token\":\"$TOKEN\",\"loops\":\"$NEXT\"}}"
+          
+          echo "✅ Secured handoff executed to loop iteration: $NEXT"
